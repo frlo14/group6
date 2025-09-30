@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+    <title>COYI</title>
+    <style>
+    body {
+        margin: 0;
+        padding: 0;
+        background: #111 url("https://cdn.gamedevmarket.net/wp-content/uploads/20200527030345/c0e3e341b8edd80f031c15c9dcb217f8.png") repeat;
+        color: #f8f8f8;
+        font-family: Papyrus, "Comic Sans MS", cursive, sans-serif;
+    }
+
+    header {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 15px;
+        margin-top: 20px;
+    }
+
+    header img {
+        width: 80px;
+        height: auto;
+        image-rendering: pixelated;
+    }
+
+    h1 {
+        font-size: 3rem;
+        color: #f8f8f8;
+        text-shadow: 2px 2px #000, 0 0 10px #ff6600;
+        margin: 0;
+    }
+
+    .text {
+        text-align: center;
+        font-size: 1.2rem;
+        background: rgba(0,0,0,0.6);
+        display: inline-block;
+        padding: 10px 20px;
+        border: 2px solid #ffcc00;
+        border-radius: 10px;
+        box-shadow: 0 0 10px #ff6600;
+        margin-top: 15px;
+    }
+
+    .bus {
+        position: relative;
+        background: #ffcc00;
+        border: 4px solid #000;
+        border-radius: 8px;
+        width: 600px;
+        height: 160px;
+        margin: 40px auto;
+        cursor: pointer;
+        box-shadow: 0 5px #000;
+        display: flex;
+        flex-direction: column;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .bus:hover {
+        transform: scale(1.05) translateY(-5px); 
+        box-shadow: 0 8px #000; 
+    }
+
+    .wheel {
+        position: absolute;
+        bottom: -25px;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #333;
+        border: 4px solid #000;
+    }
+
+    .wheel.left { left: 60px; }
+    .wheel.right { right: 60px; }
+
+    .windows {
+        display: flex;
+        align-items: center;
+        height: 70px;
+        padding: 10px;
+        gap: 15px;
+        background: #ffcc00;
+        border-bottom: 4px solid #000;
+    }
+
+    .windshield {
+        width: 80px;
+        height: 60px;
+        background: #66ccff;
+        border: 4px solid #000;
+        border-radius: 3px;
+    }
+
+    .window {
+        flex: 1;
+        height: 60px;
+        background: #66ccff;
+        border: 4px solid #000;
+        border-radius: 3px;
+    }
+
+    .bus-header {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: 'Press Start 2P', cursive;
+        font-size: 1.2rem;
+        color: #000;
+        text-shadow: 1px 1px #fff;
+        border-top: 4px solid #000;
+    }
+
+    .bus-content {
+        position: absolute;
+        top: 100%; 
+        left: 0;
+        width: 100%;
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.4s ease-out, padding 0.4s;
+        background: #fff3b0;
+        border-top: 4px solid #000;
+        z-index: 10;
+        padding: 0;
+        border-radius: 0 0 8px 8px;
+    }
+
+    .bus-content p {
+        margin: 10px 15px;
+        padding: 10px;
+        background: #fff;
+        border: 2px dashed #000;
+        border-radius: 5px;
+        font-size: 1.1rem;
+        text-align: center;
+        color: #000;
+    }
+
+    .bus.open .bus-content {
+        max-height: 1000px; 
+        padding: 10px 0;
+    }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Unnamed Maze Game</h1>
+    </header>
+    <div style="text-align:center;">
+        <div class="text">
+            <p>you paid 10 grand to be here why are you trying to leave</p>
+        </div>
+    </div>
+    <div class="bus" id="busMenu">
+        <div class="windows">
+            <div class="windshield"></div>
+            <div class="window"></div>
+            <div class="window"></div>
+            <div class="window"></div>
+        </div>
+        <div class="bus-header">Relevant Links</div>
+        <div class="bus-content">
+            <p>link 1</p>
+            <p>link 2</p>
+            <p>link 3</p>
+            <p>link 4</p>
+            <p>link 5</p>
+            <p>link 6</p>
+        </div>
+        <div class="wheel left"></div>
+        <div class="wheel right"></div>
+    </div>
+    <script>
+    const bus = document.getElementById("busMenu");
+    bus.addEventListener("click", function() {
+        bus.classList.toggle("open");
+    });
+    </script>
+</body>
+</html>
