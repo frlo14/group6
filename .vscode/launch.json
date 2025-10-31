@@ -5,6 +5,20 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "type": "java",
+            "name": "TestMaze",
+            "request": "launch",
+            "mainClass": "group6.maze.TestMaze",
+            "projectName": "core"
+        },
+        {
+            "type": "java",
+            "name": "Lwjgl3Launcher",
+            "request": "launch",
+            "mainClass": "group6.maze.lwjgl3.Lwjgl3Launcher",
+            "projectName": "lwjgl3"
+        },
+        {
             "type": "jdk",
             "request": "launch",
             "name": "Launch Java App"
