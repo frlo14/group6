@@ -103,6 +103,18 @@ public class Maze {
     public CellType[][] getGrid() { 
         return grid; 
     }
+
+    public boolean isCellBlocked(float x, float y, int tileSize) {
+        int tileX = (int)(x / tileSize);
+        int tileY = (int)(y / tileSize);
+
+        if (tileX < 0 || tileY < 0 || tileX >= grid.length || tileY >= grid[0].length) {
+            return true; 
+        }
+
+        return grid[tileX][tileY] == CellType.BLOCKED;
+}
+
 }
 
 

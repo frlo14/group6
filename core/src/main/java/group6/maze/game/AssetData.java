@@ -13,9 +13,9 @@ public final class AssetData {
     public static TextureRegion[] playerSprites;
 
     public static void load() {
-        floorTexture = new Texture("greyFloor.png");
-        wallTexture = new Texture("greyBrickWall.png");
-        playerTexture = new Texture("character.png");
+        floorTexture = new Texture("assets/greyFloor.png");
+        wallTexture = new Texture("assets/greyBrickWall.png");
+        playerTexture = new Texture("assets/character.png");
 
         floor = new TextureRegion(floorTexture);
         wall = new TextureRegion(wallTexture);

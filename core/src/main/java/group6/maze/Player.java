@@ -39,14 +39,14 @@ public class Player {
     }
 
     // ran once per frame
-    public void update(float delta) {
+    public void update(float delta, Chunk chunk) {
         float moveX = 0, moveY = 0;
 
-        // handles movement by checking keypress
-        if (Gdx.input.isKeyPressed(Input.Keys.W) || Gdx.input.isKeyPressed(Input.Keys.UP)) moveY += 1;
-        if (Gdx.input.isKeyPressed(Input.Keys.S) || Gdx.input.isKeyPressed(Input.Keys.DOWN)) moveY -= 1;
-        if (Gdx.input.isKeyPressed(Input.Keys.A) || Gdx.input.isKeyPressed(Input.Keys.LEFT)) moveX -= 1;
-        if (Gdx.input.isKeyPressed(Input.Keys.D) || Gdx.input.isKeyPressed(Input.Keys.RIGHT)) moveX += 1;
+        // handles movement by checking keypress and if the next tile is blocked or not
+        if ((Gdx.input.isKeyPressed(Input.Keys.W) || Gdx.input.isKeyPressed(Input.Keys.UP)) && !chunk.isCellBlocked(x, y+1, 64)) moveY += 1;
+        if ((Gdx.input.isKeyPressed(Input.Keys.S) || Gdx.input.isKeyPressed(Input.Keys.DOWN)) && !chunk.isCellBlocked(x, y-1, 64)) moveY -= 1;
+        if ((Gdx.input.isKeyPressed(Input.Keys.A) || Gdx.input.isKeyPressed(Input.Keys.LEFT)) && !chunk.isCellBlocked(x-1, y, 64)) moveX -= 1;
+        if ((Gdx.input.isKeyPressed(Input.Keys.D) || Gdx.input.isKeyPressed(Input.Keys.RIGHT)) && !chunk.isCellBlocked(x+1, y, 64)) moveX += 1;
 
         moving = (moveX != 0 || moveY != 0);
 

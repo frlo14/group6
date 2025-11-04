@@ -1,14 +1,15 @@
 package group6.maze;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import group6.maze.game.AssetData;
 
-import java.util.HashMap;
-import java.util.Map;
+import group6.maze.game.AssetData;
 
 public class Main extends ApplicationAdapter {
     private SpriteBatch batch;
@@ -25,8 +26,8 @@ public class Main extends ApplicationAdapter {
     private TextureRegion wall;
 
     // map of chunk coordinates to maze chunks
-    private final Map<ChunkCoord, Chunk> chunks = new HashMap<>();
-    private ChunkCoord currentChunkCoord;
+    public final Map<ChunkCoord, Chunk> chunks = new HashMap<>();
+    public ChunkCoord currentChunkCoord;
 
     @Override
     // constructor class ran once on startup
@@ -60,7 +61,8 @@ public class Main extends ApplicationAdapter {
     @Override
     public void render() {
         float delta = Gdx.graphics.getDeltaTime();
-        player.update(delta);
+        Chunk currentChunk = chunks.get(currentChunkCoord);
+        player.update(delta, currentChunk);
 
         // determines which chunk player is currently in
         int playerTileX = (int) (player.x / tileSize);
