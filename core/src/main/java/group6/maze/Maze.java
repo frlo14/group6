@@ -15,8 +15,8 @@ public class Maze {
 
     public Maze(int width, int height) {
         // makes sure dimensions are odd so walls fall on even coords and passages fall on odd coords
-        this.width = (width % 2 == 0) ? width + 1 : width;  
-        this.height = (height % 2 == 0) ? height + 1 : height; 
+        this.width = (width % 2 == 0) ? width + 1 : width;
+        this.height = (height % 2 == 0) ? height + 1 : height;
         this.grid = new CellType[this.width][this.height];
         this.random = new Random(System.currentTimeMillis());
 
@@ -50,7 +50,7 @@ public class Maze {
                 int nx = fx + dir[0] * 2;
                 int ny = fy + dir[1] * 2;
                 if (inBounds(nx, ny) && grid[nx][ny] == CellType.PASSAGE) {
-                    neighbors.add(new int[]{nx, ny}); 
+                    neighbors.add(new int[]{nx, ny});
                 }
             }
 
@@ -78,7 +78,7 @@ public class Maze {
             int ny = y + d[1] * 2;
             if (inBounds(nx, ny) && grid[nx][ny] == CellType.BLOCKED) {
                 frontier.add(new int[]{nx, ny});
-                grid[nx][ny] = CellType.BLOCKED; 
+                grid[nx][ny] = CellType.BLOCKED;
             }
         }
     }
@@ -92,18 +92,15 @@ public class Maze {
         return Math.min(n, limit - 2);
     }
 
-    public int getWidth() { 
-        return width; 
+    public int getWidth() {
+        return width;
     }
 
-    public int getHeight() { 
-        return height; 
-    }
-    
-    public CellType[][] getGrid() { 
-        return grid; 
+    public int getHeight() {
+        return height;
     }
 
+    public CellType[][] getGrid() {
+        return grid;
+    }
 }
-
-

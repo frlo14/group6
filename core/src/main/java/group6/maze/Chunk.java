@@ -8,14 +8,14 @@ import com.badlogic.gdx.Gdx;
 public class Chunk extends Maze {
     private final int coordX;
     private final int coordY;
-    private final long globalSeed; // global seed for the whole maze to ensure consistency 
-    private final long seed;         
+    private final long globalSeed; // global seed for the whole maze to ensure consistency
+    private final long seed;
 
     public Chunk(int coordX, int coordY, long globalSeed, int width, int height) {
         super(width, height);
         this.coordX = coordX;
         this.coordY = coordY;
-        this.globalSeed = globalSeed; 
+        this.globalSeed = globalSeed;
         this.seed = Objects.hash(coordX, coordY, globalSeed);
 
         random.setSeed(seed);
@@ -34,8 +34,8 @@ public class Chunk extends Maze {
         return seed;
     }
 
-    public long getGlobalSeed() { 
-        return globalSeed; 
+    public long getGlobalSeed() {
+        return globalSeed;
     }
 
     // makes sure that maze openings for each chunk align with the neighbouring chunk to create a more natural maze feel
@@ -51,8 +51,8 @@ public class Chunk extends Maze {
         long maxX = Math.max(coordX, neighbor.getChunkX());
         long minY = Math.min(coordY, neighbor.getChunkY());
         long maxY = Math.max(coordY, neighbor.getChunkY());
-        
-        return (minX * 73856093L) ^ (maxX * 19349663L) ^ 
+
+        return (minX * 73856093L) ^ (maxX * 19349663L) ^
             (minY * 83492791L) ^ (maxY * 29348917L) ^ globalSeed; // normalizes values with my world seed using XOR
     };
 
@@ -63,8 +63,8 @@ public class Chunk extends Maze {
             for (int y = 1; y < getHeight() - 1; y += 2) {
                 boolean open = (Objects.hash(base, y, coordX, coordY, neighbor.getChunkX(), neighbor.getChunkY()) & 1) == 0; // uses the hash from earlier to determine whether walls should be open or not
                 if (open) {
-                    grid[getWidth() - 2][y] = CellType.PASSAGE;  
-                    neighborGrid[0][y] = CellType.PASSAGE;       
+                    grid[getWidth() - 1][y] = CellType.PASSAGE;
+                    neighborGrid[0][y] = CellType.PASSAGE;
                 }
             }
         }
