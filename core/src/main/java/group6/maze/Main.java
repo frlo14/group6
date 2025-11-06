@@ -62,7 +62,7 @@ public class Main extends ApplicationAdapter {
     public void render() {
         float delta = Gdx.graphics.getDeltaTime();
         Chunk currentChunk = chunks.get(currentChunkCoord);
-        player.update(delta, currentChunk);
+        player.update(delta, this);
 
         // determines which chunk player is currently in
         int playerTileX = (int) (player.x / tileSize);
@@ -112,13 +112,9 @@ public class Main extends ApplicationAdapter {
     }
 
     private void checkProximityAndGenerate(int localX, int localY, int currentChunkX, int currentChunkY) {
-        // right edge
         if (localX >= mazeWidth - proximityThreshold) generateChunkIfAbsent(currentChunkX + 1, currentChunkY);
-        // left edge
         if (localX < proximityThreshold) generateChunkIfAbsent(currentChunkX - 1, currentChunkY);
-        // top edge
         if (localY >= mazeHeight - proximityThreshold) generateChunkIfAbsent(currentChunkX, currentChunkY + 1);
-        // bottom edge
         if (localY < proximityThreshold) generateChunkIfAbsent(currentChunkX, currentChunkY - 1);
     }
 
@@ -127,22 +123,26 @@ public class Main extends ApplicationAdapter {
         if (!chunks.containsKey(coord)) {
             Chunk newChunk = new Chunk(chunkX, chunkY, globalSeed, mazeWidth, mazeHeight);
 
-            // aligns borders with existing neighbors in all directions
-            Chunk neighbor;
-
-            neighbor = chunks.get(new ChunkCoord(chunkX - 1, chunkY)); // left
-            if (neighbor != null) neighbor.alignBorders(newChunk);
-
-            neighbor = chunks.get(new ChunkCoord(chunkX + 1, chunkY)); // right
-            if (neighbor != null) newChunk.alignBorders(neighbor);
-
-            neighbor = chunks.get(new ChunkCoord(chunkX, chunkY - 1)); // bottom
-            if (neighbor != null) neighbor.alignBorders(newChunk);
-
-            neighbor = chunks.get(new ChunkCoord(chunkX, chunkY + 1)); // top
-            if (neighbor != null) newChunk.alignBorders(neighbor);
-
             chunks.put(coord, newChunk);
+
+            // for each neighbor direction
+            ChunkCoord[] neighborOffsets = {
+                new ChunkCoord(chunkX - 1, chunkY), 
+                new ChunkCoord(chunkX + 1, chunkY), 
+                new ChunkCoord(chunkX, chunkY - 1), 
+                new ChunkCoord(chunkX, chunkY + 1)  
+            };
+
+            for (ChunkCoord neighborCoord : neighborOffsets) {
+                Chunk neighbor = chunks.get(neighborCoord);
+                if (neighbor != null) {
+                    // ran twice for symmetry and consistency
+                    newChunk.alignBorders(neighbor);
+                    neighbor.alignBorders(newChunk);
+                }
+            }
+
+            //chunks.put(coord, newChunk);
         }
     }
 
@@ -158,5 +158,41 @@ public class Main extends ApplicationAdapter {
         camera.update();
     }
 
-    private record ChunkCoord(int x, int y) {}
+    protected record ChunkCoord(int x, int y) {}
+
+    
+    public boolean isCellBlocked(float worldX, float worldY, int tileSize) {
+    // converts overall coordinates to local tile coords
+    int tileX = (int) Math.floor(worldX / tileSize);
+    int tileY = (int) Math.floor(worldY / tileSize);
+
+    // determines tile span of a given chunk 
+    int chunkTileWidth = mazeWidth - 1; 
+    int chunkTileHeight = mazeHeight - 1;
+
+    // finds the chunk the relevant tile is located in
+    int chunkX = Math.floorDiv(tileX, chunkTileWidth);
+    int chunkY = Math.floorDiv(tileY, chunkTileHeight);
+
+    // finds the local coordinates of the tile within the current chunk
+    int localX = Math.floorMod(tileX, chunkTileWidth);
+    int localY = Math.floorMod(tileY, chunkTileHeight);
+
+    ChunkCoord coord = new ChunkCoord(chunkX, chunkY);
+    Chunk chunk = chunks.get(coord);
+    if (chunk == null) {
+        return true; // ungenerated chunks are blocked by default (strictly not needed as walls should block it but is safe)
+    }
+
+    int gridX = localX;
+    int gridY = localY;
+
+    // ensures no out of bounds exceptions
+    if (gridX < 0 || gridY < 0 || gridX >= chunk.getWidth() || gridY >= chunk.getHeight()) {
+        return true;
+    }
+
+    // returns state of cell as bool
+    return chunk.getGrid()[gridX][gridY] == Maze.CellType.BLOCKED;
+}
 }
