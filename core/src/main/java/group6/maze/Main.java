@@ -136,8 +136,7 @@ public class Main extends ApplicationAdapter {
             for (ChunkCoord neighborCoord : neighborOffsets) {
                 Chunk neighbor = chunks.get(neighborCoord);
                 if (neighbor != null) {
-                    // ran twice for symmetry and consistency
-                    newChunk.alignBorders(neighbor);
+                    // neighbour being the already existing chunk
                     neighbor.alignBorders(newChunk);
                 }
             }
@@ -160,7 +159,7 @@ public class Main extends ApplicationAdapter {
 
     protected record ChunkCoord(int x, int y) {}
 
-    
+
     public boolean isCellBlocked(float worldX, float worldY, int tileSize) {
     // converts overall coordinates to local tile coords
     int tileX = (int) Math.floor(worldX / tileSize);

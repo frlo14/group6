@@ -1,4 +1,3 @@
-// chunk.java — revised
 package group6.maze;
 
 import java.util.Objects;
@@ -6,28 +5,28 @@ import java.util.Objects;
 import com.badlogic.gdx.Gdx;
 
 public class Chunk extends Maze {
-    private final int coordX;
-    private final int coordY;
+    private final int coordirX;
+    private final int coordirY;
     private final long globalSeed; // global seed for the whole maze to ensure consistency 
-    private final long seed;         
+    private final long seed;       
 
-    public Chunk(int coordX, int coordY, long globalSeed, int width, int height) {
+    public Chunk(int coordirX, int coordirY, long globalSeed, int width, int height) {
         super(width, height);
-        this.coordX = coordX;
-        this.coordY = coordY;
+        this.coordirX = coordirX;
+        this.coordirY = coordirY;
         this.globalSeed = globalSeed; 
-        this.seed = Objects.hash(coordX, coordY, globalSeed);
+        this.seed = Objects.hash(coordirX, coordirY, globalSeed);
 
         random.setSeed(seed);
         this.generate();
     }
 
     public int getChunkX() {
-        return coordX;
+        return coordirX;
     }
 
     public int getChunkY() {
-        return coordY;
+        return coordirY;
     }
 
     public long getSeed() {
@@ -45,75 +44,112 @@ public class Chunk extends Maze {
 
         long globalSeed = this.getGlobalSeed();
 
-        // manual spatial hashing algorithm to ensure consistency between chunks
-        java.util.function.LongSupplier keyBase = () -> {
-        long minX = Math.min(coordX, neighbor.getChunkX());
-        long maxX = Math.max(coordX, neighbor.getChunkX());
-        long minY = Math.min(coordY, neighbor.getChunkY());
-        long maxY = Math.max(coordY, neighbor.getChunkY());
-        
-        return (minX * 73856093L) ^ (maxX * 19349663L) ^ 
-            (minY * 83492791L) ^ (maxY * 29348917L) ^ globalSeed; // normalizes values with my world seed using XOR
-    };
+        // manual spatial hashing algorithm to ensure consistency between chunks and make sure each wall always has the same ID
+        long minX = Math.min(coordirX, neighbor.getChunkX());
+        long minY = Math.min(coordirY, neighbor.getChunkY());
+        long maxX = Math.max(coordirX, neighbor.getChunkX());
+        long maxY = Math.max(coordirY, neighbor.getChunkY());
+
+        // normalizes values with my world seed using XOR
+        long base = splitmix64((minX * 73856093L) ^ (minY * 19349663L) ^ (maxX * 83492791L) ^ (maxY * 29348917L) ^ globalSeed);
+
+        // determines direction of the wall
+        int dirX = neighbor.getChunkX() - coordirX;
+        int dirY = neighbor.getChunkY() - coordirY;
 
 
-        // right neighbor
-        if (neighbor.getChunkX() == coordX + 1 && neighbor.getChunkY() == coordY) {
-            long base = keyBase.getAsLong();
-            for (int y = 1; y < getHeight() - 1; y += 2) {
-                boolean open = (Objects.hash(base, y, coordX, coordY, neighbor.getChunkX(), neighbor.getChunkY()) & 1) == 0; // uses the hash from earlier to determine whether walls should be open or not
+        // right neighbour
+        if (dirX == 1 && dirY == 0) {
+            boolean isOpen = false;
+            for (int y = 1; y < getHeight() - 1; y++) {
+                boolean open = ((splitmix64(base ^ minX ^ minY ^ maxX ^ maxY ^ y) & 1L) == 0L);
                 if (open) {
-                    grid[getWidth() - 2][y] = CellType.PASSAGE;  
-                    neighborGrid[0][y] = CellType.PASSAGE;       
+                    grid[getWidth() - 1][y] = CellType.PASSAGE;
+                    neighborGrid[0][y] = CellType.PASSAGE;
+                    isOpen = true;
+                }
+            }
+            /* failsafe
+            due to the nature of the hashing algorithm, the algorithm computes walls that should be open as closed, this just opens every other wall as a safety mechanism*/ 
+            if (!isOpen) {
+                for (int y = 1; y < getHeight() - 1; y += 2) {
+                    grid[getWidth() - 1][y] = CellType.PASSAGE;
+                    neighborGrid[0][y] = CellType.PASSAGE;
                 }
             }
         }
 
-
-        // left neighbor
-        if (neighbor.getChunkX() == coordX - 1 && neighbor.getChunkY() == coordY) {
-            long base = keyBase.getAsLong();
-            for (int y = 1; y < getHeight() - 1; y += 2) {
-                boolean open = (Objects.hash(base, y, coordX, coordY, neighbor.getChunkX(), neighbor.getChunkY()) & 1) == 1; // opposite hash value for opposite side (breaks if changed)
+        // left neighbour
+        if (dirX == -1 && dirY == 0) {
+            boolean isOpen = false;
+            for (int y = 1; y < getHeight() - 1; y++) {
+                boolean open = ((splitmix64(base ^ minX ^ minY ^ maxX ^ maxY ^ y) & 1L) == 0L);
                 if (open) {
+                    grid[0][y] = CellType.PASSAGE;
+                    neighborGrid[getWidth() - 1][y] = CellType.PASSAGE;
+                    isOpen = true;
+                }
+            }
+            if (!isOpen) {
+                for (int y = 1; y < getHeight() - 1; y += 2) {
                     grid[0][y] = CellType.PASSAGE;
                     neighborGrid[getWidth() - 1][y] = CellType.PASSAGE;
                 }
             }
         }
 
-        // top neighbor
-        if (neighbor.getChunkY() == coordY + 1 && neighbor.getChunkX() == coordX) {
-            System.out.println("running top");
-            long base = keyBase.getAsLong();
-            for (int x = 1; x < getWidth() - 1; x += 2) {
-                boolean open = (Objects.hash(base, x, coordX, coordY, neighbor.getChunkX(), neighbor.getChunkY()) & 1) == 0;
-                Gdx.app.log("alignBorders Debugging", String.format("open/base=(%b,%d)",open, base));
+        // top neighbour
+        if (dirY == 1 && dirX == 0) {
+            boolean isOpen = false;
+            int thisY = getHeight() - 1;
+            int neighbourY = 0;
+            for (int x = 1; x < getWidth() - 1; x++) {
+                boolean open = ((splitmix64(base ^ x) & 1L) == 0L);
                 if (open) {
-                    grid[x][getHeight() - 1] = CellType.PASSAGE;
-                    neighborGrid[x][0] = CellType.PASSAGE;
+                    grid[x][thisY] = CellType.PASSAGE;
+                    neighborGrid[x][neighbourY] = CellType.PASSAGE;
+                    isOpen = true;
+                }
+            }
+            if (!isOpen) {
+                for (int x = 1; x < getWidth() - 1; x += 2) {
+                    grid[x][thisY] = CellType.PASSAGE;
+                    neighborGrid[x][neighbourY] = CellType.PASSAGE;
                 }
             }
         }
 
-        // bottom neighbor
-        if (neighbor.getChunkY() == coordY - 1 && neighbor.getChunkX() == coordX) {
-            System.out.println("running bottom");
-            long base = keyBase.getAsLong();
-            for (int x = 1; x < getWidth() - 1; x += 2) {
-                boolean open = (Objects.hash(base, x, coordX, coordY, neighbor.getChunkX(), neighbor.getChunkY()) & 1) == 1;
-                Gdx.app.log("alignBorders Debugging", String.format("open/base=(%b,%d)",open, base));
+        // bottom neighbour
+        if (dirY == -1 && dirX == 0) {
+            boolean isOpen = false;
+            int thisY = 0;
+            int neighbourY = getHeight() - 1;
+            for (int x = 1; x < getWidth() - 1; x++) {
+                boolean open = ((splitmix64(base ^ x) & 1L) == 0L);
                 if (open) {
-                    grid[x][0] = CellType.PASSAGE;
-                    neighborGrid[x][getHeight() - 1] = CellType.PASSAGE;
+                    grid[x][thisY] = CellType.PASSAGE;
+                    neighborGrid[x][neighbourY] = CellType.PASSAGE;
+                    isOpen = true;
+                }
+            }
+            if (!isOpen) {
+                for (int x = 1; x < getWidth() - 1; x += 2) {
+                    grid[x][thisY] = CellType.PASSAGE;
+                    neighborGrid[x][neighbourY] = CellType.PASSAGE;
                 }
             }
         }
-        Gdx.app.log("alignDebug", String.format(
-    "This=(%d,%d), Neighbor=(%d,%d)",
-    coordX, coordY, neighbor.getChunkX(), neighbor.getChunkY()
-));
-
-
     }
+
+    // pesudo random method mixes bits using right shifts, XOR and multiplies by golden ratio and other 'magic' constants
+    private static long splitmix64(long v) {
+        v += 0x9e3779b97f4a7c15L;
+        v = (v ^ (v >>> 30)) * 0xbf58476d1ce4e5b9L;
+        v = (v ^ (v >>> 27)) * 0x94d049bb133111ebL;
+        v = v ^ (v >>> 31);
+        return v;
+    }
+
+
+
 }
