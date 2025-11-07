@@ -5,36 +5,36 @@ import java.util.Objects;
 import com.badlogic.gdx.Gdx;
 
 public class Chunk extends Maze {
-    private final int coordirX;
-    private final int coordirY;
-    private final long globalSeed; // global seed for the whole maze to ensure consistency 
-    private final long seed;       
+    private final int coordX;
+    private final int coordY;
+    private final long globalSeed; // global seed for the whole maze to ensure consistency
+    private final long seed;
 
-    public Chunk(int coordirX, int coordirY, long globalSeed, int width, int height) {
+    public Chunk(int coordX, int coordY, long globalSeed, int width, int height) {
         super(width, height);
-        this.coordirX = coordirX;
-        this.coordirY = coordirY;
-        this.globalSeed = globalSeed; 
-        this.seed = Objects.hash(coordirX, coordirY, globalSeed);
+        this.coordX = coordX;
+        this.coordY = coordY;
+        this.globalSeed = globalSeed;
+        this.seed = Objects.hash(coordX, coordY, globalSeed);
 
         random.setSeed(seed);
         this.generate();
     }
 
     public int getChunkX() {
-        return coordirX;
+        return coordX;
     }
 
     public int getChunkY() {
-        return coordirY;
+        return coordY;
     }
 
     public long getSeed() {
         return seed;
     }
 
-    public long getGlobalSeed() { 
-        return globalSeed; 
+    public long getGlobalSeed() {
+        return globalSeed;
     }
 
     // makes sure that maze openings for each chunk align with the neighbouring chunk to create a more natural maze feel
@@ -45,17 +45,17 @@ public class Chunk extends Maze {
         long globalSeed = this.getGlobalSeed();
 
         // manual spatial hashing algorithm to ensure consistency between chunks and make sure each wall always has the same ID
-        long minX = Math.min(coordirX, neighbor.getChunkX());
-        long minY = Math.min(coordirY, neighbor.getChunkY());
-        long maxX = Math.max(coordirX, neighbor.getChunkX());
-        long maxY = Math.max(coordirY, neighbor.getChunkY());
+        long minX = Math.min(coordX, neighbor.getChunkX());
+        long minY = Math.min(coordY, neighbor.getChunkY());
+        long maxX = Math.max(coordX, neighbor.getChunkX());
+        long maxY = Math.max(coordY, neighbor.getChunkY());
 
         // normalizes values with my world seed using XOR
         long base = splitmix64((minX * 73856093L) ^ (minY * 19349663L) ^ (maxX * 83492791L) ^ (maxY * 29348917L) ^ globalSeed);
 
         // determines direction of the wall
-        int dirX = neighbor.getChunkX() - coordirX;
-        int dirY = neighbor.getChunkY() - coordirY;
+        int dirX = neighbor.getChunkX() - coordX;
+        int dirY = neighbor.getChunkY() - coordY;
 
 
         // right neighbour
