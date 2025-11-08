@@ -1,13 +1,17 @@
 package group6.maze;
 
+import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.Map;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.utils.viewport.FitViewport;
+import com.badlogic.gdx.utils.viewport.Viewport;
 
 import group6.maze.game.AssetData;
 
@@ -25,6 +29,13 @@ public class Main extends ApplicationAdapter {
     private TextureRegion floor;
     private TextureRegion wall;
 
+    private float timeElapsed;
+    private OrthographicCamera uiCamera;
+    private Viewport uiViewport;
+    private BitmapFont font;
+    private DecimalFormat timerFormatting;
+
+
     // map of chunk coordinates to maze chunks
     public final Map<ChunkCoord, Chunk> chunks = new HashMap<>();
     public ChunkCoord currentChunkCoord;
@@ -39,6 +50,14 @@ public class Main extends ApplicationAdapter {
         AssetData.load();
         floor = AssetData.floor;
         wall = AssetData.wall; 
+
+        // binds the timer text to the top of the screen
+        uiCamera = new OrthographicCamera();
+        uiViewport = new FitViewport(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), uiCamera);
+        font = new BitmapFont();
+        font.getData().setScale(2f);
+        timerFormatting = new DecimalFormat("00.0");
+        timeElapsed = 0;
 
         // generates initial maze chunk
         Chunk initialChunk = new Chunk(0, 0, globalSeed, mazeWidth, mazeHeight);
@@ -108,6 +127,16 @@ public class Main extends ApplicationAdapter {
 
         // draw player on top
         player.draw(batch);
+
+        // increments timer once per frame
+        timeElapsed += delta;
+
+        // displays the formatted time
+        uiViewport.apply();
+        batch.setProjectionMatrix(uiCamera.combined);
+        String displayTime = "Time elapsed: " + timerFormatting.format(timeElapsed);
+        font.draw(batch, displayTime, 20, uiViewport.getWorldHeight() - 20);
+
         batch.end();
     }
 
@@ -155,6 +184,7 @@ public class Main extends ApplicationAdapter {
     @Override
     public void resize(int width, int height) {
         camera.setToOrtho(false, width, height);
+        uiViewport.update(width, height, true);
         camera.update();
     }
 
