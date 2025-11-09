@@ -189,13 +189,13 @@
         </div>
         <div class="bus-header">Diagrams</div>
         <div class="bus-content">
-            <p>Relationship Diagram
+            <p>Relationship Diagram:
                 <img id="relationDiagram" src="relationship.jpg" alt="Relationship Diagram" width="80" height="50">
             </p>
-            <p>Component Diagram
+            <p>Component Diagram:
                 <img id="compDiagram">
             </p>
-            <p>Class Diagram
+            <p>Class Diagram:
                 <img id="classDiagram">
             </p>
         </div>
@@ -218,7 +218,7 @@
 
     <script>
         const relationship = document.getElementById("relationDiagram");
-        relationship.addEventListener("click", function() {
+        relationship.addEventListener("click", show() {
         relationship.toggle("open");
         });
     </script>
