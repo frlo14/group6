@@ -184,7 +184,7 @@
         <div class="wheel right"></div>
     </div>
     
-    <div class="bus" id="busMenu">
+    <div class="bus" id="busDiagrams">
         <div class="windows">
             <div class="windshield"></div>
             <div class="window"></div>
@@ -204,7 +204,11 @@
         <div class="wheel right"></div>
     </div>
     <script>
-    const bus = document.getElementById("busMenu");
+    const bus1 = document.getElementById("busMenu");
+    bus.addEventListener("click", function() {
+        bus.classList.toggle("open");
+    });
+    const bus2 = document.getElementById("busDiagrams");
     bus.addEventListener("click", function() {
         bus.classList.toggle("open");
     });
