@@ -6,9 +6,11 @@ import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 
+import group6.maze.game.Powerups;
+
 public class Player {
     public float x, y; 
-    private float speed = 200f; 
+    public float speed = 200f; 
     private float stateTime = 0f; 
     private boolean moving = false;
     private Chunk currentChunk;
@@ -102,6 +104,13 @@ public class Player {
         } else {
             stateTime = 0;
         }
+
+        // once you walk over powerup, it is removed from the screen and then the effect is applied
+        Powerups powerup = world.getPowerupAt(x, y, world.tileSize);
+        if (powerup != null) {
+            powerup.setActive(false);
+            powerup.pickUp(this, world);
+        }
     }
 
 
@@ -118,5 +127,9 @@ public class Player {
 
     public void setCurrentChunk(Chunk chunk) {
         this.currentChunk = chunk;
+    }
+
+    public void setSpeed(float speed) {
+        this.speed = speed;
     }
 }

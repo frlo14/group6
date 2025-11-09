@@ -3,9 +3,11 @@ package group6.maze;
 import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -14,17 +16,19 @@ import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
 import group6.maze.game.AssetData;
+import group6.maze.game.Powerups;
 
 public class Main extends ApplicationAdapter {
     private SpriteBatch batch;
     private OrthographicCamera camera;
     private Player player;
 
-    private final int mazeWidth = 31;
-    private final int mazeHeight = 31;
-    private final int tileSize = 64;
-    private final int proximityThreshold = 6;
+    protected final int mazeWidth = 31;
+    protected final int mazeHeight = 31;
+    protected final int tileSize = 64;
+    private final int proximityThreshold = 12;
     private final long globalSeed = System.currentTimeMillis();
+    public float multiplier = 1f;
 
     private TextureRegion floor;
     private TextureRegion wall;
@@ -123,13 +127,26 @@ public class Main extends ApplicationAdapter {
                     batch.draw(tex, sx, sy, tileSize, tileSize);
                 }
             }
+
+            // safety, ensures transparent images appear transparent
+            batch.enableBlending(); 
+            batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+
+            // draws all active powerups
+            for (Powerups p : chunk.getPowerups()) {
+                if (p.isActive()) {
+                    float px = offsetX + p.x * tileSize;
+                    float py = offsetY + p.y * tileSize;
+                    batch.draw(Powerups.getPowerupTexture(p.type), px, py, tileSize, tileSize);
+                }
+            }
         }
 
         // draw player on top
         player.draw(batch);
 
         // increments timer once per frame
-        timeElapsed += delta;
+        incrementTimer(delta, multiplier);
 
         // displays the formatted time
         uiViewport.apply();
@@ -151,6 +168,9 @@ public class Main extends ApplicationAdapter {
         ChunkCoord coord = new ChunkCoord(chunkX, chunkY);
         if (!chunks.containsKey(coord)) {
             Chunk newChunk = new Chunk(chunkX, chunkY, globalSeed, mazeWidth, mazeHeight);
+
+            Random rng = new Random(globalSeed + chunkX * 10007L + chunkY * 7919L); // deterministic seeding for powerup generation
+            newChunk.spawnPowerups(this, 8, rng);
 
             chunks.put(coord, newChunk);
 
@@ -192,37 +212,77 @@ public class Main extends ApplicationAdapter {
 
     
     public boolean isCellBlocked(float worldX, float worldY, int tileSize) {
-    // converts overall coordinates to local tile coords
-    int tileX = (int) Math.floor(worldX / tileSize);
-    int tileY = (int) Math.floor(worldY / tileSize);
+        // converts overall coordinates to local tile coords
+        int tileX = (int) Math.floor(worldX / tileSize);
+        int tileY = (int) Math.floor(worldY / tileSize);
 
-    // determines tile span of a given chunk 
-    int chunkTileWidth = mazeWidth - 1; 
-    int chunkTileHeight = mazeHeight - 1;
+        // determines tile span of a given chunk 
+        int chunkTileWidth = mazeWidth - 1; 
+        int chunkTileHeight = mazeHeight - 1;
 
-    // finds the chunk the relevant tile is located in
-    int chunkX = Math.floorDiv(tileX, chunkTileWidth);
-    int chunkY = Math.floorDiv(tileY, chunkTileHeight);
+        // finds the chunk the relevant tile is located in
+        int chunkX = Math.floorDiv(tileX, chunkTileWidth);
+        int chunkY = Math.floorDiv(tileY, chunkTileHeight);
 
-    // finds the local coordinates of the tile within the current chunk
-    int localX = Math.floorMod(tileX, chunkTileWidth);
-    int localY = Math.floorMod(tileY, chunkTileHeight);
+        // finds the local coordinates of the tile within the current chunk
+        int localX = Math.floorMod(tileX, chunkTileWidth);
+        int localY = Math.floorMod(tileY, chunkTileHeight);
 
-    ChunkCoord coord = new ChunkCoord(chunkX, chunkY);
-    Chunk chunk = chunks.get(coord);
-    if (chunk == null) {
-        return true; // ungenerated chunks are blocked by default (strictly not needed as walls should block it but is safe)
+        ChunkCoord coord = new ChunkCoord(chunkX, chunkY);
+        Chunk chunk = chunks.get(coord);
+        if (chunk == null) {
+            return true; // ungenerated chunks are blocked by default (strictly not needed as walls should block it but is safe)
+        }
+
+        int gridX = localX;
+        int gridY = localY;
+
+        // ensures no out of bounds exceptions
+        if (gridX < 0 || gridY < 0 || gridX >= chunk.getWidth() || gridY >= chunk.getHeight()) {
+            return true;
+        }
+
+        // returns state of cell as bool
+        return chunk.getGrid()[gridX][gridY] == Maze.CellType.BLOCKED;
     }
 
-    int gridX = localX;
-    int gridY = localY;
-
-    // ensures no out of bounds exceptions
-    if (gridX < 0 || gridY < 0 || gridX >= chunk.getWidth() || gridY >= chunk.getHeight()) {
-        return true;
+    public void incrementTimer(float delta, float multiplier) {
+        timeElapsed += (delta * multiplier);
     }
 
-    // returns state of cell as bool
-    return chunk.getGrid()[gridX][gridY] == Maze.CellType.BLOCKED;
-}
+    // same logic as isCellBlocked, finding the local coordinates and then returning the relevant info, in this case, powerup
+    public Powerups getPowerupAt(float worldX, float worldY, int tileSize) {
+        int tileX = (int) Math.floor(worldX / tileSize);
+        int tileY = (int) Math.floor(worldY / tileSize);
+
+        int chunkTileWidth = mazeWidth - 1;
+        int chunkTileHeight = mazeHeight - 1;
+
+        int chunkX = Math.floorDiv(tileX, chunkTileWidth);
+        int chunkY = Math.floorDiv(tileY, chunkTileHeight);
+
+        int localX = Math.floorMod(tileX, chunkTileWidth);
+        int localY = Math.floorMod(tileY, chunkTileHeight);
+
+        ChunkCoord coord = new ChunkCoord(chunkX, chunkY);
+        Chunk chunk = chunks.get(coord);
+        if (chunk == null) return null; 
+
+        for (Powerups p : chunk.getPowerups()) {
+            if (!p.isActive()) {
+                continue; 
+            }
+            if (p.x == localX && p.y == localY) {
+                return p; 
+            }
+        }
+
+        return null;
+    }
+
+    /* 
+    public void setMultiplier(float multiplier) {
+        this.multiplier = multiplier;
+    }
+*/
 }

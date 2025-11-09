@@ -8,9 +8,9 @@ public class Maze {
     // cells are either walls or passages
     public enum CellType { BLOCKED, PASSAGE }
 
-    private final int width;
-    private final int height;
-    private final CellType[][] grid;
+    protected final int width;
+    protected final int height;
+    protected final CellType[][] grid;
     public final Random random;
 
     public Maze(int width, int height) {

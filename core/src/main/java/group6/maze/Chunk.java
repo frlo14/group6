@@ -1,6 +1,10 @@
 package group6.maze;
 
 import java.util.Objects;
+import java.util.*;
+import com.badlogic.gdx.utils.Array;
+import java.util.Random;
+import group6.maze.game.Powerups;
 
 import com.badlogic.gdx.Gdx;
 
@@ -9,6 +13,8 @@ public class Chunk extends Maze {
     private final int coordY;
     private final long globalSeed; // global seed for the whole maze to ensure consistency
     private final long seed;
+    private Array<Powerups> powerups = new Array<>();
+    private Powerups powerup;
 
     public Chunk(int coordX, int coordY, long globalSeed, int width, int height) {
         super(width, height);
@@ -35,6 +41,10 @@ public class Chunk extends Maze {
 
     public long getGlobalSeed() {
         return globalSeed;
+    }
+
+    public Array<Powerups> getPowerups() {
+        return powerups;
     }
 
     // makes sure that maze openings for each chunk align with the neighbouring chunk to create a more natural maze feel
@@ -148,6 +158,23 @@ public class Chunk extends Maze {
         v = (v ^ (v >>> 27)) * 0x94d049bb133111ebL;
         v = v ^ (v >>> 31);
         return v;
+    }
+
+        
+    // randomly chooses a location and a powerup type then creates it
+    public void spawnPowerups(Main world, int count, Random rng) {
+        for (int i = 0; i < count; i++) {
+            int x, y;
+            do {
+                x = rng.nextInt(width);
+                y = rng.nextInt(height);
+            } while (grid[x][y] != Maze.CellType.PASSAGE);
+
+            Powerups.Type type = Powerups.Type.values()[rng.nextInt(Powerups.Type.values().length-1)]; // omits the key event from random generation
+
+            Powerups p = new Powerups(type, x, y, Powerups.getPowerupTexture(type));
+            powerups.add(p);
+        }
     }
 
 
