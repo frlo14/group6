@@ -191,17 +191,56 @@
         <div class="bus-content">
             <p>Relationship Diagram:
                 <a href="relationship.jpg">
-                    <img id="relationDiagram" src="relationship.jpg" alt="Relationship Diagram" width="130" height="90">
+                    <img src="relationship.jpg" alt="Relationship Diagram" width="130" height="90">
                 </a>
             </p>
             <p>Component Diagram:
                 <a href="component.jpg">
-                    <img id="compDiagram" src="component.jpg" alt="Component Diagram" width="130" height="90">
+                    <img src="component.jpg" alt="Component Diagram" width="130" height="90">
                 </a>
             </p>
             <p>Class Diagram:
                 <a href="class.jpg">
-                    <img id="classDiagram" src="class.jpg" alt="Class Diagram" width="130" height="90">
+                    <img src="class.jpg" alt="Class Diagram" width="130" height="90">
+                </a>
+            </p>
+        </div>
+        <div class="wheel left"></div>
+        <div class="wheel right"></div>
+    </div>
+
+    <div class="bus" id="busMeetings">
+        <div class="windows">
+            <div class="windshield"></div>
+            <div class="window"></div>
+            <div class="window"></div>
+            <div class="window"></div>
+        </div>
+        <div class="bus-header">Meeting Logs (click images to enlargen)</div>
+        <div class="bus-content">
+            <p>Meeting Log 1:
+                <a href="meeting1.jpg">
+                    <img src="meeting1.jpg" alt="Meeting Log 1" width="125" height="100">
+                </a>
+            </p>
+            <p>Meeting Log 2:
+                <a href="meeting2.jpg">
+                    <img src="meeting2.jpg" alt="Meeting Log 2" width="125" height="100">
+                </a>
+            </p>
+            <p>Meeting Log 3:
+                <a href="meeting3.jpg">
+                    <img src="meeting3.jpg" alt="Meeting Log 3" width="125" height="100">
+                </a>
+            </p>
+            <p>Meeting Log 4:
+                <a href="meeting4.jpg">
+                    <img src="meeting4.jpg" alt="Meeting Log 4" width="130" height="90">
+                </a>
+            </p>
+            <p>Meeting Log 5:
+                <a href="meeting5.jpg">
+                    <img src="meeting5.jpg" alt="Meeting Log 5" width="130" height="90">
                 </a>
             </p>
         </div>
@@ -223,9 +262,9 @@
     </script>
 
     <script>
-        const relationship = document.getElementById("relationDiagram");
-        relationship.addEventListener("click", function() {
-        relationship.open()"
+        const meetingBus = document.getElementById("busMeetings");
+        meetingBus.addEventListener("click", function() {
+        meetingBus.classList.toggle("open");
         });
     </script>
     
