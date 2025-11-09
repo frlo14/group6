@@ -66,7 +66,7 @@
     }
 
     .wheel {
-        z-index: 10;
+        z-index: 5;
         position: absolute;
         bottom: -25px;
         width: 40px;
@@ -148,7 +148,7 @@
     .bus.open .bus-content {
         max-height: 1000px; 
         padding: 10px 0;
-    }
+    }        
     </style>
 </head>
 <body>
@@ -218,8 +218,8 @@
 
     <script>
         const relationship = document.getElementById("relationDiagram");
-        relationship.addEventListener("click", show() {
-        relationship.toggle("open");
+        relationship.addEventListener("click", function() {
+        relationship.style.transform="scale(4)"
         });
     </script>
     
