@@ -20,6 +20,7 @@ public final class AssetData {
     public static Texture beamTexture;
     public static Texture woodenFloorTexture;
     public static Texture woodenFloorWithDeskTexture;
+    public static Texture finalFloorTexture;
 
     public static Music soundtrack;
     public static Sprite guitarSprite;
@@ -36,6 +37,7 @@ public final class AssetData {
     public static TextureRegion beam;
     public static TextureRegion woodenFloor;
     public static TextureRegion woodenFloorWithDesk;
+    public static TextureRegion finalFloor;
     public static TextureRegion[] playerSprites;
 
     public static void load() {
@@ -52,6 +54,7 @@ public final class AssetData {
         beamTexture = new Texture("assets/tellBeam.png");
         woodenFloorTexture = new Texture("assets/woodenFloor.png");
         woodenFloorWithDeskTexture = new Texture("assets/woodenFloorWithDesk.png");
+        finalFloorTexture = new Texture("assets/finalFloor.png");
 
         soundtrack = Gdx.audio.newMusic(Gdx.files.internal("assets/sounds/the-only-thing-they-fear-is-you.mp3"));
 
@@ -67,6 +70,7 @@ public final class AssetData {
         beam = new TextureRegion(beamTexture);
         woodenFloor = new TextureRegion(woodenFloorTexture);
         woodenFloorWithDesk = new TextureRegion(woodenFloorWithDeskTexture);
+        finalFloor = new TextureRegion(finalFloorTexture);
         
 
         guitarSprite = new Sprite(guitarPowerupTexture);

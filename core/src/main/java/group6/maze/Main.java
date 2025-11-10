@@ -31,9 +31,12 @@ public class Main extends ApplicationAdapter {
     private int proximityThreshold = 12;
     private final long globalSeed = System.currentTimeMillis();
     public float multiplier = 1f;
+    public float startX;
+    public float startY;
 
     private TextureRegion floor;
     private TextureRegion floorWithDesk;
+    protected TextureRegion finalFloor;
     private TextureRegion wall;
 
     private float timeElapsed;
@@ -44,6 +47,15 @@ public class Main extends ApplicationAdapter {
 
     private EnemyAttack activeAttack;
     private int timesHit;
+    protected boolean hasKey;
+    protected float displacement;
+
+    public boolean keySpawned;
+    public boolean finalChunkSpawned = false;
+    private boolean finalScoreCalculated = false;
+    private float finalScore;
+    public ChunkCoord finalChunkCoord = null;
+    
 
 
     // map of chunk coordinates to maze chunks
@@ -60,6 +72,7 @@ public class Main extends ApplicationAdapter {
         AssetData.load();
         floor = AssetData.woodenFloor;
         floorWithDesk = AssetData.woodenFloorWithDesk;
+        finalFloor = AssetData.finalFloor;
         wall = AssetData.wall;
 
         // binds the timer text to the top of the screen
@@ -76,8 +89,8 @@ public class Main extends ApplicationAdapter {
         currentChunkCoord = new ChunkCoord(0, 0);
 
         // places player in the center
-        float startX = (mazeWidth / 2f) * tileSize;
-        float startY = (mazeHeight / 2f) * tileSize;
+        startX = (mazeWidth / 2f) * tileSize;
+        startY = (mazeHeight / 2f) * tileSize;
 
         // splits player assets into direction based animations then creates said player
         TextureRegion[] upFrames    = new TextureRegion[]{ AssetData.playerSprites[0], AssetData.playerSprites[1] };
@@ -131,9 +144,17 @@ public class Main extends ApplicationAdapter {
                 for (int x = 0; x < mazeWidth; x++) {
                     float sx = offsetX + x * tileSize;
                     float sy = offsetY + y * tileSize;
-                    TextureRegion floorType = currentChunk.hasDesk(x, y) ? floorWithDesk : floor;
-                    TextureRegion tex = (grid[x][y] == Maze.CellType.PASSAGE) ? floorType : wall;
+                    TextureRegion tex;
+                    if (chunk.isFinalChunk) {           
+                        tex = chunk.finalFloor;             
+                    } else if (grid[x][y] == Maze.CellType.BLOCKED) {
+                        tex = wall;
+                    } else {
+                        tex = chunk.getFloorTexture(x, y, floor, floorWithDesk);
+                    }
+
                     batch.draw(tex, sx, sy, tileSize, tileSize);
+
                 }
             }
 
@@ -157,22 +178,24 @@ public class Main extends ApplicationAdapter {
         // increments timer once per frame
         incrementTimer(delta, multiplier);
 
-        // displays the formatted time
-        uiViewport.apply();
-        batch.setProjectionMatrix(uiCamera.combined);
+        // displays the formatted ui 
+        if (!finalChunkSpawned) {
+            uiViewport.apply();
+            batch.setProjectionMatrix(uiCamera.combined);
 
-        GlyphLayout layout = new GlyphLayout();
+            GlyphLayout layout = new GlyphLayout();
 
-        String displayTime = "Time elapsed: " + timerFormatting.format(timeElapsed);
-        font.draw(batch, displayTime, 20, uiViewport.getWorldHeight() - 20);
-        
-        layout.setText(font, displayTime);
-        float timeWidth = layout.width;
+            String displayTime = "Time elapsed: " + timerFormatting.format(timeElapsed);
+            font.draw(batch, displayTime, 20, uiViewport.getWorldHeight() - 20);
 
-        String displayHits = "Times hit: " + timerFormatting.format(timesHit);
-        font.draw(batch, displayHits, 20 + timeWidth + 40, uiViewport.getWorldHeight() - 20);
+            layout.setText(font, displayTime);
+            float timeWidth = layout.width;
 
+            String displayHits = "Times hit: " + timerFormatting.format(timesHit);
+            font.draw(batch, displayHits, 20 + timeWidth + 40, uiViewport.getWorldHeight() - 20);
+        }
 
+        // listens for attacks
         if (activeAttack != null) {
             activeAttack.update(delta);
             activeAttack.render(batch);
@@ -187,15 +210,38 @@ public class Main extends ApplicationAdapter {
             }
         }
 
+        // checks how far the player has moved
+        this.displacement = this.calcDisplacement(player.x, player.y, this.startX, this.startY);
+        
+        if (finalChunkCoord != null && currentChunkCoord.equals(finalChunkCoord)) {
+            calcScore();
+            drawFinalChunkText(batch, font, camera);
+        }
+
         batch.end();
     }
 
     private void checkProximityAndGenerate(int localX, int localY, int currentChunkX, int currentChunkY) {
-        if (localX >= mazeWidth - proximityThreshold) generateChunkIfAbsent(currentChunkX + 1, currentChunkY);
-        if (localX < proximityThreshold) generateChunkIfAbsent(currentChunkX - 1, currentChunkY);
-        if (localY >= mazeHeight - proximityThreshold) generateChunkIfAbsent(currentChunkX, currentChunkY + 1);
-        if (localY < proximityThreshold) generateChunkIfAbsent(currentChunkX, currentChunkY - 1);
+        boolean exitSatisfied = this.exitConditionSatisfied(hasKey);
+        // normal gameplay loop
+        if (!exitSatisfied) {
+            if (localX >= mazeWidth - proximityThreshold) generateChunkIfAbsent(currentChunkX + 1, currentChunkY);
+            if (localX < proximityThreshold) generateChunkIfAbsent(currentChunkX - 1, currentChunkY);
+            if (localY >= mazeHeight - proximityThreshold) generateChunkIfAbsent(currentChunkX, currentChunkY + 1);
+            if (localY < proximityThreshold) generateChunkIfAbsent(currentChunkX, currentChunkY - 1);
+        }
+        // once the game ends generates the last chunk, then stops being able to generate
+        else if (!finalChunkSpawned && exitSatisfied) {
+            if (localX >= mazeWidth - proximityThreshold) generateFinalChunk(currentChunkX + 1, currentChunkY);
+            if (localX < proximityThreshold) generateFinalChunk(currentChunkX - 1, currentChunkY);
+            if (localY >= mazeHeight - proximityThreshold) generateFinalChunk(currentChunkX, currentChunkY + 1);
+            if (localY < proximityThreshold) generateFinalChunk(currentChunkX, currentChunkY - 1);
+        }
+        else {
+            return;
+        }
     }
+
 
     private void generateChunkIfAbsent(int chunkX, int chunkY) {
         ChunkCoord coord = new ChunkCoord(chunkX, chunkY);
@@ -204,6 +250,7 @@ public class Main extends ApplicationAdapter {
 
             Random rng = new Random(globalSeed + chunkX * 10007L + chunkY * 7919L); // deterministic seeding for powerup generation
             newChunk.spawnPowerups(this, 8, rng);
+            newChunk.spawnKey(this, rng, displacement);
 
             chunks.put(coord, newChunk);
 
@@ -325,10 +372,108 @@ public class Main extends ApplicationAdapter {
         }
     }
 
+    // similar logic to generateChunkIfAbsent, only ever ran once
+    public void generateFinalChunk(int chunkX, int chunkY) {
+        if (finalChunkSpawned) return;
 
-    /* 
-    public void setMultiplier(float multiplier) {
-        this.multiplier = multiplier;
+        ChunkCoord coord = new ChunkCoord(chunkX, chunkY);
+        if (!chunks.containsKey(coord)) {
+            Chunk finalChunk = new Chunk(chunkX, chunkY, globalSeed, mazeWidth, mazeHeight);
+
+            // change flag
+            finalChunk.isFinalChunk = true;
+            finalChunk.finalFloor = AssetData.finalFloor;
+
+            // removes all interior walls
+            for (int x = 0; x < mazeWidth; x++) {
+                for (int y = 0; y < mazeHeight; y++) {
+                    finalChunk.getGrid()[x][y] = Maze.CellType.PASSAGE;
+                }
+            }
+
+            chunks.put(coord, finalChunk);
+
+            ChunkCoord[] neighborOffsets = {
+                new ChunkCoord(chunkX - 1, chunkY),
+                new ChunkCoord(chunkX + 1, chunkY),
+                new ChunkCoord(chunkX, chunkY - 1),
+                new ChunkCoord(chunkX, chunkY + 1)
+            };
+
+            for (ChunkCoord neighborCoord : neighborOffsets) {
+                Chunk neighbor = chunks.get(neighborCoord);
+                if (neighbor != null) {
+                    finalChunk.alignBorders(neighbor);
+                }
+            }
+
+            finalChunkCoord = coord;
+            finalChunkSpawned = true;
+        }
     }
-*/
+
+
+    public boolean exitConditionSatisfied(boolean hasKey) {
+        if (hasKey) {
+            return true;
+        }
+        return false;
+    }
+
+    // uses pythagoras theorem to calculate displacement
+    public float calcDisplacement(float x, float y, float startX, float startY) {
+        float displacement = (float) Math.sqrt(Math.pow(x - startX, 2) + Math.pow(y - startY, 2));
+        return displacement;
+    }
+
+    public void drawFinalChunkText(SpriteBatch batch, BitmapFont font, OrthographicCamera camera) {
+        Chunk finalChunk = null;
+        for (Chunk chunk : chunks.values()) {
+            if (chunk.isFinalChunk) {
+                finalChunk = chunk;
+                break;
+            }
+        }
+        if (finalChunk == null) {
+            return;
+        } 
+
+        // find centre of the chunk
+        float chunkWorldX = finalChunk.getChunkX() * (mazeWidth - 1) * tileSize;
+        float chunkWorldY = finalChunk.getChunkY() * (mazeHeight - 1) * tileSize;
+
+        float centerX = chunkWorldX + (mazeWidth * tileSize) / 2f;
+        float centerY = chunkWorldY + (mazeHeight * tileSize) / 2f;
+
+        String line1 = "Congratulations, you escaped uni and made it to the real world!";
+        String line2 = "Your score: " + finalScore;
+
+        font.getData().setScale(3.5f); 
+
+        GlyphLayout layout1 = new GlyphLayout(font, line1);
+        GlyphLayout layout2 = new GlyphLayout(font, line2);
+
+        float textX1 = centerX - layout1.width / 2f;
+        float textY1 = centerY + layout1.height / 2f + layout2.height / 2f; 
+        float textX2 = centerX - layout2.width / 2f;
+        float textY2 = centerY - layout1.height / 2f + layout2.height / 2f; 
+
+        batch.setProjectionMatrix(camera.combined);
+        font.draw(batch, layout1, textX1, textY1);
+        font.draw(batch, layout2, textX2, textY2);
+
+    }
+
+    public void calcScore() {
+        if (!finalScoreCalculated) {
+            /*score is calculated by:
+            subtracting time from 5 and a half minutes in seconds
+            subtracting e^ times hit from that value
+             */
+            finalScore = (330f - timeElapsed) - (float)Math.exp(timesHit);
+            if (finalScore < 0) finalScore = 0f;
+            finalScoreCalculated = true;
+        }
+    }
+
 }

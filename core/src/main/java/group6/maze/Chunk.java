@@ -5,6 +5,7 @@ import java.util.*;
 import com.badlogic.gdx.utils.Array;
 import java.util.Random;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 
 public class Chunk extends Maze {
     private final int coordX;
@@ -14,6 +15,9 @@ public class Chunk extends Maze {
     private Array<Powerups> powerups = new Array<>();
     private Powerups powerup;
     private boolean[][] hasDesk;
+    protected boolean isFinalChunk = false;
+    protected TextureRegion finalFloor = null;
+    private boolean keySpawned;
 
     public Chunk(int coordX, int coordY, long globalSeed, int width, int height) {
         super(width, height);
@@ -193,6 +197,28 @@ public class Chunk extends Maze {
         }
     }
 
+    public TextureRegion getFloorTexture(int x, int y, TextureRegion defaultFloor, TextureRegion deskFloor) {
+    if (isFinalChunk && finalFloor != null) {
+        return finalFloor; 
+    }
+    return hasDesk[x][y] ? deskFloor : defaultFloor;
+}
 
+    // same logic as all the other spawners, just with conditions to be fulfilled beforehand
+    public void spawnKey(Main world, Random rng, float displacement) {
+        if (keySpawned || displacement < 50000f) {
+            return; 
+        }
+        int x, y;
+        do {
+            x = rng.nextInt(width);
+            y = rng.nextInt(height);
+        } while (grid[x][y] != Maze.CellType.PASSAGE);
 
+        Powerups.Type type = Powerups.Type.values()[5]; 
+        Powerups p = new Powerups(type, x, y, Powerups.getPowerupTexture(type));
+        powerups.add(p);
+
+        keySpawned = true;
+    }
 }

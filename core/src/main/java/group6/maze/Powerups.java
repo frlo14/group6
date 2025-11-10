@@ -56,7 +56,8 @@ public class Powerups {
                 world.multiplier = 2f;
             }
             case EXIT_ITEM -> {
-                // add key spawn, do last when sorting completion
+                world.hasKey = true;
+                world.exitConditionSatisfied(world.hasKey);
             }
         }
     }
