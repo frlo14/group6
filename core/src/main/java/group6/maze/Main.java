@@ -33,6 +33,7 @@ public class Main extends ApplicationAdapter {
     public float multiplier = 1f;
 
     private TextureRegion floor;
+    private TextureRegion floorWithDesk;
     private TextureRegion wall;
 
     private float timeElapsed;
@@ -57,8 +58,9 @@ public class Main extends ApplicationAdapter {
         camera.update();
 
         AssetData.load();
-        floor = AssetData.floor;
-        wall = AssetData.wall; 
+        floor = AssetData.woodenFloor;
+        floorWithDesk = AssetData.woodenFloorWithDesk;
+        wall = AssetData.wall;
 
         // binds the timer text to the top of the screen
         uiCamera = new OrthographicCamera();
@@ -123,12 +125,14 @@ public class Main extends ApplicationAdapter {
             float offsetX = coord.x * (mazeWidth - 1) * tileSize;
             float offsetY = coord.y * (mazeHeight - 1) * tileSize;
 
+            // gives blocked cells a wall and passages a type of floor
             Maze.CellType[][] grid = chunk.getGrid();
             for (int y = 0; y < mazeHeight; y++) {
                 for (int x = 0; x < mazeWidth; x++) {
                     float sx = offsetX + x * tileSize;
                     float sy = offsetY + y * tileSize;
-                    TextureRegion tex = (grid[x][y] == Maze.CellType.PASSAGE) ? floor : wall;
+                    TextureRegion floorType = currentChunk.hasDesk(x, y) ? floorWithDesk : floor;
+                    TextureRegion tex = (grid[x][y] == Maze.CellType.PASSAGE) ? floorType : wall;
                     batch.draw(tex, sx, sy, tileSize, tileSize);
                 }
             }
@@ -216,7 +220,7 @@ public class Main extends ApplicationAdapter {
                 if (neighbor != null) {
                     // ran twice for symmetry and consistency
                     newChunk.alignBorders(neighbor);
-                    neighbor.alignBorders(newChunk);
+                    //neighbor.alignBorders(newChunk);
                 }
             }
 

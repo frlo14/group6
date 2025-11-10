@@ -13,6 +13,7 @@ public class Chunk extends Maze {
     private final long seed;
     private Array<Powerups> powerups = new Array<>();
     private Powerups powerup;
+    private boolean[][] hasDesk;
 
     public Chunk(int coordX, int coordY, long globalSeed, int width, int height) {
         super(width, height);
@@ -23,6 +24,23 @@ public class Chunk extends Maze {
 
         random.setSeed(seed);
         this.generate();
+
+        hasDesk = new boolean[width][height];
+
+        /*  deterministic algorithm so desks remain in same place
+        written in chunk so its only generated once */
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                if (grid[x][y] == Maze.CellType.PASSAGE) {
+                    long tileSeed = splitmix64(seed + x * 341873128712L + y * 132897987541L);
+                    hasDesk[x][y] = (tileSeed & 1L) == 0L; 
+                }
+            }
+        }
+    }
+
+    public boolean hasDesk(int x, int y) {
+        return hasDesk[x][y];
     }
 
     public int getChunkX() {

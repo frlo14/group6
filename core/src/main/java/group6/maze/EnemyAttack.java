@@ -14,7 +14,7 @@ public class EnemyAttack {
     private float elapsed = 0f;
 
     private final float TELLTime = 0.15f;   // beam reveal duration
-    private final float dashDuration = 1.2f;     // enemy dash duration
+    private final float dashDuration = 1f;     // enemy dash duration
     private final float enemyScaleTiles = 1.2f;
     private final float dashScale = 1.4f;
     private final float bobAmplitude = 8f;
