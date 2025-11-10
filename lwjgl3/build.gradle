@@ -123,6 +123,27 @@ tasks.register("jarWin") {
   }
 }
 
+tasks.register('fatJar', Jar) {
+    archiveBaseName.set('MyGame')
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+
+    with jar
+
+    manifest {
+        attributes 'Main-Class': 'group6.maze.lwjgl3.Lwjgl3Launcher'
+    }
+
+    // ✅ include your core assets in the jar
+    from('../assets') {
+        into 'assets'
+    }
+}
+
+
 construo {
     // name of the executable
     name.set(appName)
