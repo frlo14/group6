@@ -1,6 +1,7 @@
 package group6.maze;
 
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
@@ -55,6 +56,7 @@ public class Main extends ApplicationAdapter {
     private boolean finalScoreCalculated = false;
     private float finalScore;
     public ChunkCoord finalChunkCoord = null;
+    public ArrayList<Powerups> activeEffects = new ArrayList<>();
     
 
 
@@ -103,6 +105,9 @@ public class Main extends ApplicationAdapter {
 
     @Override
     public void render() {
+        Gdx.gl.glClearColor(0, 0, 0, 1); // or whatever your background color is
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+
         float delta = Gdx.graphics.getDeltaTime();
         Chunk currentChunk = chunks.get(currentChunkCoord);
         player.update(delta, this);
@@ -123,7 +128,17 @@ public class Main extends ApplicationAdapter {
         checkProximityAndGenerate(localX, localY, currentChunkX, currentChunkY);
 
         // camera follows player
-        camera.position.set(player.x, player.y, 0);
+        float targetX = Math.round(player.x);
+        float targetY = Math.round(player.y);
+
+        // using integer aligned and lerp cam to reduce jitters as we deviate from origin coords
+        float lerp = 0.1f;
+        camera.position.x += (targetX - camera.position.x) * lerp;
+        camera.position.y += (targetY - camera.position.y) * lerp;
+
+        camera.position.x = Math.round(camera.position.x);
+        camera.position.y = Math.round(camera.position.y);
+
         camera.update();
 
         batch.setProjectionMatrix(camera.combined);
@@ -153,7 +168,8 @@ public class Main extends ApplicationAdapter {
                         tex = chunk.getFloorTexture(x, y, floor, floorWithDesk);
                     }
 
-                    batch.draw(tex, sx, sy, tileSize, tileSize);
+                    batch.draw(tex, Math.round(sx), Math.round(sy), tileSize, tileSize);
+
 
                 }
             }
@@ -170,6 +186,17 @@ public class Main extends ApplicationAdapter {
                     batch.draw(Powerups.getPowerupTexture(p.type), px, py, tileSize, tileSize);
                 }
             }
+
+            // runs the update method in powerups to decrement time remaining
+            for (Powerups effect : new ArrayList<>(activeEffects)) {
+                effect.update(delta, player, this);
+                if (!effect.isActive()) {
+                    activeEffects.remove(effect);
+                }
+            }
+
+
+
         }
 
         // draw player on top
@@ -202,7 +229,6 @@ public class Main extends ApplicationAdapter {
 
             if (activeAttack.collidingWithPlayer(player.x, player.y)) {
                 timesHit += 1;
-                System.out.println("hit");
             }
 
             if (activeAttack.isFinished()) {
@@ -284,9 +310,19 @@ public class Main extends ApplicationAdapter {
 
     @Override
     public void resize(int width, int height) {
-        camera.setToOrtho(false, width, height);
-        uiViewport.update(width, height, true);
+        float baseWidth = 640;
+        float baseHeight = 480;
+
+        float scaleX = (float) width / baseWidth;
+        float scaleY = (float) height / baseHeight;
+
+        float scale = Math.min(scaleX, scaleY);
+
+        camera.viewportWidth = baseWidth * scale;
+        camera.viewportHeight = baseHeight * scale;
+
         camera.update();
+        uiViewport.update(width, height, true);
     }
 
     protected record ChunkCoord(int x, int y) {}
