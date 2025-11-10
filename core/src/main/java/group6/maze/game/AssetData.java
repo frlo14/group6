@@ -16,6 +16,8 @@ public final class AssetData {
     public static Texture slowTimePowerupTexture;
     public static Texture speedTimePowerupTexture;
     public static Texture keyPowerupTexture;
+    public static Texture lecturerTexture;
+    public static Texture beamTexture;
 
     public static Music soundtrack;
     public static Sprite guitarSprite;
@@ -28,6 +30,8 @@ public final class AssetData {
     public static TextureRegion slowTimePowerup;
     public static TextureRegion speedTimePowerup;
     public static TextureRegion keyPowerup;
+    public static TextureRegion lecturer;
+    public static TextureRegion beam;
     public static TextureRegion[] playerSprites;
 
     public static void load() {
@@ -40,6 +44,8 @@ public final class AssetData {
         slowTimePowerupTexture = new Texture("assets/slowClock.png");
         speedTimePowerupTexture = new Texture("assets/fastClock.png");
         keyPowerupTexture = new Texture("assets/key.png");
+        lecturerTexture = new Texture("assets/lecturer.png");
+        beamTexture = new Texture("assets/tellBeam.png");
 
         soundtrack = Gdx.audio.newMusic(Gdx.files.internal("assets/sounds/the-only-thing-they-fear-is-you.mp3"));
 
@@ -51,6 +57,9 @@ public final class AssetData {
         slowTimePowerup = new TextureRegion(slowTimePowerupTexture);
         speedTimePowerup = new TextureRegion(speedTimePowerupTexture);
         keyPowerup = new TextureRegion(keyPowerupTexture);
+        lecturer = new TextureRegion(lecturerTexture);
+        beam = new TextureRegion(beamTexture);
+        
 
         guitarSprite = new Sprite(guitarPowerupTexture);
 

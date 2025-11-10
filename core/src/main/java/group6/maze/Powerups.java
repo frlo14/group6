@@ -1,9 +1,9 @@
-package group6.maze.game;
+package group6.maze;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import group6.maze.Player;
-import group6.maze.Main;
+
+import group6.maze.game.AssetData;
 
 public class Powerups {
     public enum Type {
@@ -47,7 +47,7 @@ public class Powerups {
                 player.setSpeed(300f);
             }
             case ATTACK -> {
-                // need to implement attack logic
+                world.doAttack((player.y + 0.5f));
             }
             case SLOW_TIME -> {
                 world.multiplier = 0.5f;

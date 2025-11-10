@@ -4,8 +4,6 @@ import java.util.Objects;
 import java.util.*;
 import com.badlogic.gdx.utils.Array;
 import java.util.Random;
-import group6.maze.game.Powerups;
-
 import com.badlogic.gdx.Gdx;
 
 public class Chunk extends Maze {

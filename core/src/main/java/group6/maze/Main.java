@@ -9,15 +9,17 @@ import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
+import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 
 import group6.maze.game.AssetData;
-import group6.maze.game.Powerups;
 
+import group6.maze.game.AssetData;
 public class Main extends ApplicationAdapter {
     private SpriteBatch batch;
     private OrthographicCamera camera;
@@ -26,7 +28,7 @@ public class Main extends ApplicationAdapter {
     protected final int mazeWidth = 31;
     protected final int mazeHeight = 31;
     protected final int tileSize = 64;
-    private final int proximityThreshold = 12;
+    private int proximityThreshold = 12;
     private final long globalSeed = System.currentTimeMillis();
     public float multiplier = 1f;
 
@@ -38,6 +40,9 @@ public class Main extends ApplicationAdapter {
     private Viewport uiViewport;
     private BitmapFont font;
     private DecimalFormat timerFormatting;
+
+    private EnemyAttack activeAttack;
+    private int timesHit;
 
 
     // map of chunk coordinates to maze chunks
@@ -151,8 +156,32 @@ public class Main extends ApplicationAdapter {
         // displays the formatted time
         uiViewport.apply();
         batch.setProjectionMatrix(uiCamera.combined);
+
+        GlyphLayout layout = new GlyphLayout();
+
         String displayTime = "Time elapsed: " + timerFormatting.format(timeElapsed);
         font.draw(batch, displayTime, 20, uiViewport.getWorldHeight() - 20);
+        
+        layout.setText(font, displayTime);
+        float timeWidth = layout.width;
+
+        String displayHits = "Times hit: " + timerFormatting.format(timesHit);
+        font.draw(batch, displayHits, 20 + timeWidth + 40, uiViewport.getWorldHeight() - 20);
+
+
+        if (activeAttack != null) {
+            activeAttack.update(delta);
+            activeAttack.render(batch);
+
+            if (activeAttack.collidingWithPlayer(player.x, player.y)) {
+                timesHit += 1;
+                System.out.println("hit");
+            }
+
+            if (activeAttack.isFinished()) {
+                activeAttack = null;
+            }
+        }
 
         batch.end();
     }
@@ -191,7 +220,8 @@ public class Main extends ApplicationAdapter {
                 }
             }
 
-            //chunks.put(coord, newChunk);
+
+            proximityThreshold += 1;
         }
     }
 
@@ -279,6 +309,18 @@ public class Main extends ApplicationAdapter {
 
         return null;
     }
+
+    public void doAttack(float y) {
+        if (activeAttack == null || activeAttack.isFinished()) {
+            activeAttack = new EnemyAttack(y, AssetData.lecturer, AssetData.beamTexture, camera);
+        }
+
+        if (activeAttack != null && activeAttack.collidingWithPlayer(player.x, player.y)) {
+            timesHit += 1;
+            System.out.println("hit");
+        }
+    }
+
 
     /* 
     public void setMultiplier(float multiplier) {
